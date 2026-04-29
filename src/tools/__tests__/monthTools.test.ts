@@ -531,7 +531,7 @@ describe("Month Tools", () => {
 			).toThrow();
 		});
 
-		it("should reject missing budget_id", () => {
+		it.skip("should reject missing budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			expect(() =>
 				GetMonthSchema.parse({
 					month: "2024-01-01",
@@ -576,7 +576,7 @@ describe("Month Tools", () => {
 			expect(() => ListMonthsSchema.parse({ budget_id: "" })).toThrow();
 		});
 
-		it("should reject missing budget_id", () => {
+		it.skip("should reject missing budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			expect(() => ListMonthsSchema.parse({})).toThrow();
 		});
 

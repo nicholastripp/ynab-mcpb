@@ -81,19 +81,19 @@ export async function handleListTransactions(
 				// Validate that the account exists before fetching transactions
 				// YNAB API returns empty array for invalid account IDs instead of an error
 				const accountsResult = await deltaFetcher.fetchAccounts(
-					params.budget_id,
+					params.budget_id!,
 				);
 				const accountExists = accountsResult.data.some(
 					(account) => account.id === params.account_id,
 				);
 				if (!accountExists) {
 					throw new Error(
-						`Account ${params.account_id} not found in budget ${params.budget_id}`,
+						`Account ${params.account_id} not found in budget ${params.budget_id!}`,
 					);
 				}
 
 				const result = await deltaFetcher.fetchTransactionsByAccount(
-					params.budget_id,
+					params.budget_id!,
 					params.account_id,
 					params.since_date,
 				);
@@ -102,14 +102,14 @@ export async function handleListTransactions(
 				usedDelta = result.usedDelta;
 			} else if (params.category_id) {
 				const response = await ynabAPI.transactions.getTransactionsByCategory(
-					params.budget_id,
+					params.budget_id!,
 					params.category_id,
 					params.since_date,
 				);
 				transactions = response.data.transactions;
 			} else {
 				const result = await deltaFetcher.fetchTransactions(
-					params.budget_id,
+					params.budget_id!,
 					params.since_date,
 					params.type as ynab.GetTransactionsTypeEnum | undefined,
 				);
@@ -236,7 +236,7 @@ export async function handleGetTransaction(
 			const cacheKey = CacheManager.generateKey(
 				"transaction",
 				"get",
-				params.budget_id,
+				params.budget_id!,
 				params.transaction_id,
 			);
 			cacheHit = cacheManager.has(cacheKey);
@@ -244,7 +244,7 @@ export async function handleGetTransaction(
 				ttl: CACHE_TTLS.TRANSACTIONS,
 				loader: async () => {
 					const response = await ynabAPI.transactions.getTransactionById(
-						params.budget_id,
+						params.budget_id!,
 						params.transaction_id,
 					);
 					return ensureTransaction(
@@ -256,7 +256,7 @@ export async function handleGetTransaction(
 		} else {
 			// Bypass cache in test environment
 			const response = await ynabAPI.transactions.getTransactionById(
-				params.budget_id,
+				params.budget_id!,
 				params.transaction_id,
 			);
 			transaction = ensureTransaction(

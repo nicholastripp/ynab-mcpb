@@ -20,7 +20,7 @@ export type {
  */
 export const CompareTransactionsSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		account_id: z.string().min(1, "Account ID is required"),
 		csv_file_path: z.string().optional(),
 		csv_data: z.string().optional(),
@@ -81,7 +81,7 @@ export async function handleCompareTransactions(
 			// Parse and apply defaults/validation
 			const parsed = CompareTransactionsSchema.parse(params);
 
-			const payeesResponse = await ynabAPI.payees.getPayees(parsed.budget_id);
+			const payeesResponse = await ynabAPI.payees.getPayees(parsed.budget_id!);
 			const payees = payeesResponse.data.payees;
 
 			// Get CSV data
@@ -138,7 +138,7 @@ export async function handleCompareTransactions(
 			// Get YNAB transactions for the account in the date range
 			const sinceDate = startDate.toISOString().split("T")[0];
 			const response = await ynabAPI.transactions.getTransactionsByAccount(
-				parsed.budget_id,
+				parsed.budget_id!,
 				parsed.account_id,
 				sinceDate,
 			);

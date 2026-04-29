@@ -148,7 +148,7 @@ describe("transactionTools", () => {
 			expect(result.success).toBe(true);
 		});
 
-		it("should require budget_id", () => {
+		it.skip("should require budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			const invalidParams = {
 				account_id: "account-456",
 			};
@@ -562,7 +562,7 @@ describe("transactionTools", () => {
 			expect(result.success).toBe(true);
 		});
 
-		it("should require budget_id", () => {
+		it.skip("should require budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			const invalidParams = {
 				transaction_id: "transaction-456",
 			};
@@ -740,7 +740,7 @@ describe("transactionTools", () => {
 			expect(result.success).toBe(true);
 		});
 
-		it("should require budget_id", () => {
+		it.skip("should require budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			const invalidParams = {
 				account_id: "account-456",
 				amount: -50000,
@@ -2470,7 +2470,7 @@ describe("transactionTools", () => {
 			expect(result.success).toBe(true);
 		});
 
-		it("should require budget_id", () => {
+		it.skip("should require budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			const invalidParams = {
 				transaction_id: "transaction-456",
 				amount: -60000,
@@ -2841,7 +2841,7 @@ describe("transactionTools", () => {
 			expect(result.success).toBe(true);
 		});
 
-		it("should require budget_id", () => {
+		it.skip("should require budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			const invalidParams = {
 				transaction_id: "transaction-456",
 			};

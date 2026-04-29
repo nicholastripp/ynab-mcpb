@@ -281,9 +281,16 @@ export class ToolRegistry {
 			}
 		}
 
+		// Spread order: user-supplied arguments first, then defaults — so that values
+		// returned by `defaultArgumentResolver` override raw user input on the keys they
+		// resolve. This is required for keyword translation (e.g. budget_id="default" →
+		// resolved UUID) to actually take effect; the previous order would silently
+		// keep the literal "default" string. Resolvers should return a Partial<TInput>
+		// containing ONLY the keys they want to override (the budget resolver returns
+		// just `budget_id`), so user input flows through untouched on every other field.
 		const rawArguments: Record<string, unknown> = {
-			...(defaults ?? {}),
 			...(options.arguments ?? {}),
+			...(defaults ?? {}),
 		};
 
 		try {

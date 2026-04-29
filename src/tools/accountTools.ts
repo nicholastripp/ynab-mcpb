@@ -36,7 +36,7 @@ import { ToolAnnotationPresets } from "./toolCategories.js";
  */
 export const ListAccountsSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		limit: z.number().int().positive().optional(),
 		offset: z.number().int().min(0).optional(),
 		response_format: z
@@ -53,7 +53,7 @@ export type ListAccountsParams = z.infer<typeof ListAccountsSchema>;
  */
 export const GetAccountSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		account_id: z.string().min(1, "Account ID is required"),
 		response_format: z
 			.enum(["json", "markdown"])
@@ -69,7 +69,7 @@ export type GetAccountParams = z.infer<typeof GetAccountSchema>;
  */
 export const CreateAccountSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		name: z.string().min(1, "Account name is required"),
 		type: z.enum([
 			"checking",
@@ -113,7 +113,7 @@ export async function handleListAccounts(
 	);
 	return await withToolErrorHandling(
 		async () => {
-			const result = await deltaFetcher.fetchAccounts(params.budget_id);
+			const result = await deltaFetcher.fetchAccounts(params.budget_id!);
 			const allAccounts = result.data;
 			const wasCached = result.wasCached;
 
@@ -182,7 +182,7 @@ export async function handleGetAccount(
 			const cacheKey = CacheManager.generateKey(
 				CacheKeys.ACCOUNTS,
 				"get",
-				params.budget_id,
+				params.budget_id!,
 				params.account_id,
 			);
 			const wasCached = cacheManager.has(cacheKey);
@@ -190,7 +190,7 @@ export async function handleGetAccount(
 				ttl: CACHE_TTLS.ACCOUNTS,
 				loader: async () => {
 					const response = await ynabAPI.accounts.getAccountById(
-						params.budget_id,
+						params.budget_id!,
 						params.account_id,
 					);
 					return response.data.account;
@@ -273,7 +273,7 @@ export async function handleCreateAccount(
 								dry_run: true,
 								action: "ynab_create_account",
 								request: {
-									budget_id: params.budget_id,
+									budget_id: params.budget_id!,
 									name: params.name,
 									type: params.type,
 									balance: params.balance ?? 0,
@@ -289,7 +289,7 @@ export async function handleCreateAccount(
 				balance: params.balance ? params.balance * 1000 : 0, // Convert to milliunits
 			};
 
-			const response = await ynabAPI.accounts.createAccount(params.budget_id, {
+			const response = await ynabAPI.accounts.createAccount(params.budget_id!, {
 				account: accountData,
 			});
 
@@ -299,11 +299,11 @@ export async function handleCreateAccount(
 			const accountsListCacheKey = CacheManager.generateKey(
 				CacheKeys.ACCOUNTS,
 				"list",
-				params.budget_id,
+				params.budget_id!,
 			);
 			cacheManager.delete(accountsListCacheKey);
 
-			deltaCache.invalidate(params.budget_id, CacheKeys.ACCOUNTS);
+			deltaCache.invalidate(params.budget_id!, CacheKeys.ACCOUNTS);
 
 			return {
 				content: [

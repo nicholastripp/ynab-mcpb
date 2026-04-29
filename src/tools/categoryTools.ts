@@ -36,7 +36,7 @@ import { ToolAnnotationPresets } from "./toolCategories.js";
  */
 export const ListCategoriesSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		limit: z.number().int().positive().optional(),
 		offset: z.number().int().min(0).optional(),
 		response_format: z
@@ -53,7 +53,7 @@ export type ListCategoriesParams = z.infer<typeof ListCategoriesSchema>;
  */
 export const GetCategorySchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		category_id: z.string().min(1, "Category ID is required"),
 		response_format: z
 			.enum(["json", "markdown"])
@@ -69,7 +69,7 @@ export type GetCategoryParams = z.infer<typeof GetCategorySchema>;
  */
 export const UpdateCategorySchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		category_id: z.string().min(1, "Category ID is required"),
 		budgeted: z
 			.number()
@@ -131,7 +131,7 @@ export async function handleListCategories(
 	);
 	return await withToolErrorHandling(
 		async () => {
-			const result = await deltaFetcher.fetchCategories(params.budget_id);
+			const result = await deltaFetcher.fetchCategories(params.budget_id!);
 			const categoryGroups = result.data;
 			const wasCached = result.wasCached;
 
@@ -214,7 +214,7 @@ export async function handleGetCategory(
 			const cacheKey = CacheManager.generateKey(
 				CacheKeys.CATEGORIES,
 				"get",
-				params.budget_id,
+				params.budget_id!,
 				params.category_id,
 			);
 			const wasCached = cacheManager.has(cacheKey);
@@ -222,7 +222,7 @@ export async function handleGetCategory(
 				ttl: CACHE_TTLS.CATEGORIES,
 				loader: async () => {
 					const response = await ynabAPI.categories.getCategoryById(
-						params.budget_id,
+						params.budget_id!,
 						params.category_id,
 					);
 					return response.data.category;
@@ -308,7 +308,7 @@ export async function handleUpdateCategory(
 							dry_run: true,
 							action: "ynab_update_category",
 							request: {
-								budget_id: params.budget_id,
+								budget_id: params.budget_id!,
 								category_id: params.category_id,
 								budgeted: milliunitsToAmount(params.budgeted),
 								month: currentMonth,
@@ -323,7 +323,7 @@ export async function handleUpdateCategory(
 		const currentMonth = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, "0")}-01`;
 
 		const response = await ynabAPI.categories.updateMonthCategory(
-			params.budget_id,
+			params.budget_id!,
 			currentMonth,
 			params.category_id,
 			{ category: { budgeted: params.budgeted } },
@@ -335,12 +335,12 @@ export async function handleUpdateCategory(
 		const categoriesListCacheKey = CacheManager.generateKey(
 			CacheKeys.CATEGORIES,
 			"list",
-			params.budget_id,
+			params.budget_id!,
 		);
 		const specificCategoryCacheKey = CacheManager.generateKey(
 			CacheKeys.CATEGORIES,
 			"get",
-			params.budget_id,
+			params.budget_id!,
 			params.category_id,
 		);
 		cacheManager.delete(categoriesListCacheKey);
@@ -350,19 +350,19 @@ export async function handleUpdateCategory(
 		const monthsListCacheKey = CacheManager.generateKey(
 			CacheKeys.MONTHS,
 			"list",
-			params.budget_id,
+			params.budget_id!,
 		);
 		const currentMonthCacheKey = CacheManager.generateKey(
 			CacheKeys.MONTHS,
 			"get",
-			params.budget_id,
+			params.budget_id!,
 			currentMonth,
 		);
 		cacheManager.delete(monthsListCacheKey);
 		cacheManager.delete(currentMonthCacheKey);
 
-		deltaCache.invalidate(params.budget_id, CacheKeys.CATEGORIES);
-		deltaCache.invalidate(params.budget_id, CacheKeys.MONTHS);
+		deltaCache.invalidate(params.budget_id!, CacheKeys.CATEGORIES);
+		deltaCache.invalidate(params.budget_id!, CacheKeys.MONTHS);
 		const serverKnowledge = response.data.server_knowledge;
 		if (typeof serverKnowledge === "number") {
 			knowledgeStore.update(categoriesListCacheKey, serverKnowledge);

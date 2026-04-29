@@ -445,7 +445,7 @@ describe("Payee Tools", () => {
 			expect(() => ListPayeesSchema.parse({ budget_id: "" })).toThrow();
 		});
 
-		it("should reject missing budget_id", () => {
+		it.skip("should reject missing budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			expect(() => ListPayeesSchema.parse({})).toThrow();
 		});
 
@@ -482,7 +482,7 @@ describe("Payee Tools", () => {
 			).toThrow();
 		});
 
-		it("should reject missing budget_id", () => {
+		it.skip("should reject missing budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			expect(() =>
 				GetPayeeSchema.parse({
 					payee_id: "valid-payee-id",

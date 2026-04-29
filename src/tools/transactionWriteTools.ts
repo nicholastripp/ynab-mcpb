@@ -148,7 +148,7 @@ export async function handleCreateTransaction(
 		}
 
 		const response = await ynabAPI.transactions.createTransaction(
-			params.budget_id,
+			params.budget_id!,
 			{
 				transaction: transactionData,
 			},
@@ -165,7 +165,7 @@ export async function handleCreateTransaction(
 		invalidateTransactionCaches(
 			deltaCache,
 			knowledgeStore,
-			params.budget_id,
+			params.budget_id!,
 			response.data.server_knowledge,
 			affectedAccountIds,
 			affectedMonths,
@@ -178,7 +178,7 @@ export async function handleCreateTransaction(
 
 		// Get the updated account balance
 		const accountResponse = await ynabAPI.accounts.getAccountById(
-			params.budget_id,
+			params.budget_id!,
 			transaction.account_id,
 		);
 		const account = accountResponse.data.account;
@@ -794,7 +794,7 @@ export async function handleCreateReceiptSplitTransaction(
 	}
 
 	const createTransactionParams: CreateTransactionParams = {
-		budget_id: params.budget_id,
+		budget_id: params.budget_id!,
 		account_id: params.account_id,
 		amount: -totalMilliunits,
 		date,
@@ -877,7 +877,7 @@ export async function handleUpdateTransaction(
 		// Get the original transaction before updating to capture the original account_id
 		const originalTransactionResponse =
 			await ynabAPI.transactions.getTransactionById(
-				params.budget_id,
+				params.budget_id!,
 				params.transaction_id,
 			);
 		const originalTransaction = ensureTransaction(
@@ -922,7 +922,7 @@ export async function handleUpdateTransaction(
 		}
 
 		const response = await ynabAPI.transactions.updateTransaction(
-			params.budget_id,
+			params.budget_id!,
 			params.transaction_id,
 			{
 				transaction: transactionData,
@@ -937,7 +937,7 @@ export async function handleUpdateTransaction(
 		const specificTransactionCacheKey = CacheManager.generateKey(
 			"transaction",
 			"get",
-			params.budget_id,
+			params.budget_id!,
 			params.transaction_id,
 		);
 		cacheManager.delete(specificTransactionCacheKey);
@@ -981,7 +981,7 @@ export async function handleUpdateTransaction(
 		invalidateTransactionCaches(
 			deltaCache,
 			knowledgeStore,
-			params.budget_id,
+			params.budget_id!,
 			response.data.server_knowledge,
 			affectedAccountIds,
 			affectedMonths,
@@ -999,7 +999,7 @@ export async function handleUpdateTransaction(
 
 		// Get the updated account balance
 		const accountResponse = await ynabAPI.accounts.getAccountById(
-			params.budget_id,
+			params.budget_id!,
 			transaction.account_id,
 		);
 		const account = accountResponse.data.account;
@@ -1079,7 +1079,7 @@ export async function handleDeleteTransaction(
 			};
 		}
 		const response = await ynabAPI.transactions.deleteTransaction(
-			params.budget_id,
+			params.budget_id!,
 			params.transaction_id,
 		);
 
@@ -1091,7 +1091,7 @@ export async function handleDeleteTransaction(
 		const specificTransactionCacheKey = CacheManager.generateKey(
 			"transaction",
 			"get",
-			params.budget_id,
+			params.budget_id!,
 			params.transaction_id,
 		);
 		cacheManager.delete(specificTransactionCacheKey);
@@ -1106,7 +1106,7 @@ export async function handleDeleteTransaction(
 		invalidateTransactionCaches(
 			deltaCache,
 			knowledgeStore,
-			params.budget_id,
+			params.budget_id!,
 			response.data.server_knowledge,
 			affectedAccountIds,
 			affectedMonths,
@@ -1119,7 +1119,7 @@ export async function handleDeleteTransaction(
 
 		// Get the updated account balance
 		const accountResponse = await ynabAPI.accounts.getAccountById(
-			params.budget_id,
+			params.budget_id!,
 			transaction.account_id,
 		);
 		const account = accountResponse.data.account;
@@ -1203,7 +1203,17 @@ export async function handleCreateTransactions(
 				);
 			}
 
-			const { budget_id, transactions, dry_run } = validationResult.data;
+			const {
+				budget_id: budget_id_opt,
+				transactions,
+				dry_run,
+			} = validationResult.data;
+			if (!budget_id_opt) {
+				throw new Error(
+					"budget_id missing after default resolution (registry should have filled it)",
+				);
+			}
+			const budget_id: string = budget_id_opt;
 
 			// Pre-flight duplicate import_id detection within batch
 			const importIdMap = new Map<string, number[]>();
@@ -1609,7 +1619,17 @@ export async function handleUpdateTransactions(
 				);
 			}
 
-			const { budget_id, transactions, dry_run } = validationResult.data;
+			const {
+				budget_id: budget_id_opt,
+				transactions,
+				dry_run,
+			} = validationResult.data;
+			if (!budget_id_opt) {
+				throw new Error(
+					"budget_id missing after default resolution (registry should have filled it)",
+				);
+			}
+			const budget_id: string = budget_id_opt;
 
 			if (dry_run) {
 				const previewTransactions = transactions.slice(0, 10);

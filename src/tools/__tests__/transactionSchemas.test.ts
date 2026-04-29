@@ -50,7 +50,7 @@ describe("Transaction Schemas", () => {
 			);
 		});
 
-		it("should reject missing budget_id", () => {
+		it.skip("should reject missing budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 			expect(() => ListTransactionsSchema.parse({})).toThrow();
 		});
 
@@ -1072,12 +1072,9 @@ describe("Transaction Schemas", () => {
 			).toThrow("Transaction ID is required");
 		});
 
-		it("should reject missing fields", () => {
+		it("should reject missing transaction_id (budget_id now optional)", () => {
 			expect(() =>
 				DeleteTransactionSchema.parse({ budget_id: "budget-1" }),
-			).toThrow();
-			expect(() =>
-				DeleteTransactionSchema.parse({ transaction_id: "trans-1" }),
 			).toThrow();
 		});
 

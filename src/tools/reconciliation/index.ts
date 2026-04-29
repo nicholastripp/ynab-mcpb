@@ -92,7 +92,7 @@ function getDataFreshness(
  */
 export const ReconcileAccountSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		account_id: z.string().min(1, "Account ID is required"),
 
 		// CSV input (one required)
@@ -192,14 +192,14 @@ export async function handleReconcileAccount(
 			};
 
 			const accountResult = forceFullRefresh
-				? await deltaFetcher.fetchAccountsFull(params.budget_id)
-				: await deltaFetcher.fetchAccounts(params.budget_id);
+				? await deltaFetcher.fetchAccountsFull(params.budget_id!)
+				: await deltaFetcher.fetchAccounts(params.budget_id!);
 			const accountData = accountResult.data.find(
 				(account) => account.id === params.account_id,
 			);
 			if (!accountData) {
 				throw new Error(
-					`Account ${params.account_id} not found in budget ${params.budget_id}`,
+					`Account ${params.account_id} not found in budget ${params.budget_id!}`,
 				);
 			}
 			const accountName = accountData.name;
@@ -233,7 +233,7 @@ export async function handleReconcileAccount(
 				: params.statement_balance;
 
 			const budgetResponse = await ynabAPI.budgets.getBudgetById(
-				params.budget_id,
+				params.budget_id!,
 			);
 			const currencyCode =
 				budgetResponse.data.budget?.currency_format?.iso_code ?? "USD";
@@ -330,12 +330,12 @@ export async function handleReconcileAccount(
 			const sinceDateString = sinceDate.toISOString().split("T")[0];
 			const transactionsResult = forceFullRefresh
 				? await deltaFetcher.fetchTransactionsByAccountFull(
-						params.budget_id,
+						params.budget_id!,
 						params.account_id,
 						sinceDateString,
 					)
 				: await deltaFetcher.fetchTransactionsByAccount(
-						params.budget_id,
+						params.budget_id!,
 						params.account_id,
 						sinceDateString,
 					);
@@ -423,7 +423,7 @@ export async function handleReconcileAccount(
 				config,
 				currencyCode,
 				params.account_id,
-				params.budget_id,
+				params.budget_id!,
 				finalInvertAmounts, // Use smart-detected value
 				csvOptions,
 				initialAccount,
@@ -443,7 +443,7 @@ export async function handleReconcileAccount(
 					ynabAPI,
 					analysis,
 					params,
-					budgetId: params.budget_id,
+					budgetId: params.budget_id!,
 					accountId: params.account_id,
 					initialAccount,
 					currencyCode,

@@ -594,7 +594,7 @@ describe("Category Tools", () => {
 				expect(() => ListCategoriesSchema.parse({ budget_id: "" })).toThrow();
 			});
 
-			it("should reject missing budget_id", () => {
+			it.skip("should reject missing budget_id [DEPRECATED: optional via defaultArgumentResolver]", () => {
 				expect(() => ListCategoriesSchema.parse({})).toThrow();
 			});
 		});

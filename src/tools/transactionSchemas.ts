@@ -17,7 +17,7 @@ import { z } from "zod/v4";
  */
 export const ListTransactionsSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		account_id: z.string().optional(),
 		category_id: z.string().optional(),
 		since_date: z
@@ -45,7 +45,7 @@ export type ListTransactionsParams = z.infer<typeof ListTransactionsSchema>;
  */
 export const GetTransactionSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		transaction_id: z.string().min(1, "Transaction ID is required"),
 		response_format: z
 			.enum(["json", "markdown"])
@@ -65,7 +65,7 @@ export type GetTransactionParams = z.infer<typeof GetTransactionSchema>;
  */
 const CreateTransactionBaseSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		account_id: z.string().min(1, "Account ID is required"),
 		amount: z.number().int("Amount must be an integer in milliunits"),
 		date: z
@@ -161,7 +161,7 @@ const BulkTransactionInputSchema = BulkTransactionInputSchemaBase.strict();
 
 export const CreateTransactionsSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		transactions: z
 			.array(BulkTransactionInputSchema)
 			.min(1, "At least one transaction is required")
@@ -226,7 +226,7 @@ const ReceiptSplitCategorySchema = z
 
 export const CreateReceiptSplitTransactionSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		account_id: z.string().min(1, "Account ID is required"),
 		payee_name: z.string().min(1, "Payee name is required"),
 		date: z
@@ -317,7 +317,7 @@ export interface ReceiptCategoryCalculation {
  */
 export const UpdateTransactionSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		transaction_id: z.string().min(1, "Transaction ID is required"),
 		account_id: z.string().optional(),
 		amount: z
@@ -389,7 +389,7 @@ export type BulkUpdateTransactionInput = z.infer<
  */
 export const UpdateTransactionsSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		transactions: z
 			.array(BulkUpdateTransactionInputSchema)
 			.min(1, "At least one transaction is required")
@@ -432,7 +432,7 @@ export interface BulkUpdateResponse {
  */
 export const DeleteTransactionSchema = z
 	.object({
-		budget_id: z.string().min(1, "Budget ID is required"),
+		budget_id: z.string().min(1, "Budget ID is required").optional(),
 		transaction_id: z.string().min(1, "Transaction ID is required"),
 		dry_run: z.boolean().optional(),
 	})
