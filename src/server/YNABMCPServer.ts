@@ -44,6 +44,11 @@ import {
 import { CacheManager, cacheManager } from "./cacheManager.js";
 import { CompletionsManager } from "./completions.js";
 import { type AppConfig, loadConfig } from "./config.js";
+import {
+	clearDefaultBudgetStore,
+	loadDefaultBudget,
+	saveDefaultBudget,
+} from "./defaultBudgetStore.js";
 import { DeltaCache } from "./deltaCache.js";
 import { DiagnosticManager } from "./diagnostics.js";
 import { createErrorHandler, type ErrorHandler } from "./errorHandler.js";
@@ -90,6 +95,16 @@ export class YNABMCPServer {
 		this.configInstance = loadConfig();
 		// Config is now imported and validated at startup
 		this.defaultBudgetId = this.configInstance.YNAB_DEFAULT_BUDGET_ID;
+
+		// Disk-persisted default budget takes precedence over the env-var fallback.
+		// Required for correctness when running behind a per-call-spawn MCP gateway
+		// (LiteLLM's proxy spawns the upstream stdio process per call, so any in-process
+		// default set via ynab_set_default_budget is born and dies inside one call).
+		// See defaultBudgetStore.ts for full rationale.
+		const persistedDefault = loadDefaultBudget();
+		if (persistedDefault) {
+			this.defaultBudgetId = persistedDefault;
+		}
 
 		// Initialize YNAB API
 		this.ynabAPI = new ynab.API(this.configInstance.YNAB_ACCESS_TOKEN);
@@ -693,10 +708,23 @@ Use when: you need fresh data after external YNAB changes, or to free memory.`,
 	}
 
 	/**
-	 * Sets the default budget ID for operations
+	 * Sets the default budget ID for operations. Also persists to disk so the
+	 * value survives the per-call stdio respawn behavior of MCP gateways like
+	 * LiteLLM. Disk write failures are logged but do not fail the in-memory set.
 	 */
 	setDefaultBudget(budgetId: string): void {
 		this.defaultBudgetId = budgetId;
+		try {
+			saveDefaultBudget(budgetId);
+		} catch (err) {
+			// saveDefaultBudget itself swallows filesystem errors and only throws on
+			// invalid-UUID input. In-memory state is already updated; surface the
+			// programmer error to logs and continue.
+			console.error(
+				"setDefaultBudget: persist failed (in-memory state still updated):",
+				err,
+			);
+		}
 	}
 
 	/**
@@ -707,10 +735,12 @@ Use when: you need fresh data after external YNAB changes, or to free memory.`,
 	}
 
 	/**
-	 * Clears the default budget ID (primarily for testing purposes)
+	 * Clears the default budget ID (primarily for testing purposes). Also clears
+	 * any disk-persisted value so a fresh process does not pick it up again.
 	 */
 	clearDefaultBudget(): void {
 		this.defaultBudgetId = undefined;
+		clearDefaultBudgetStore();
 	}
 
 	/**
